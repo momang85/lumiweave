@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lumiweave"
+version = "0.4.0"
+description = "LumiWeave — AI Agent协作工作台，契约驱动多Agent自动编程"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [{name = "LumiWeave Team"}]
+keywords = ["ai", "agent", "multi-agent", "orchestrator", "llm", "mcp"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pyyaml>=6.0",
+    "pydantic>=2.0",
+    "openai>=1.30",
+    "anthropic>=0.30",
+    "google-generativeai>=0.6",
+    "httpx>=0.27",
+    "rich>=13.0",
+]
+
+[project.optional-dependencies]
+rag = ["chromadb>=0.5", "sentence-transformers>=3.0", "tiktoken>=0.7", "jieba>=0.42", "PyPDF2>=3.0"]
+full = ["lumiweave[rag]", "python-multipart>=0.0.9", "aiofiles>=24.0"]
+
+[project.scripts]
+lumiweave = "lumiweave.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/lumiweave/lumiweave"
+Repository = "https://github.com/lumiweave/lumiweave"
+
+[tool.setuptools]
+packages = ["shared", "runner", "builder.backend", "lumiweave"]
+package-dir = {"" = ".", "lumiweave" = "lumiweave"}
+
+[tool.setuptools.package-data]
+"builder.backend" = ["agent_store/*.json", "runtime_config.json", "static/**/*"]
+agents = ["*.yaml"]
+"builder.frontend" = ["dist/**/*"]

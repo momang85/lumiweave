@@ -1,0 +1,61 @@
+{
+  "agent_id": "c3e4de5c-d81",
+  "name": "代码助手",
+  "description": "帮你写代码、Debug、Review，支持 Python/JS/Go/Rust 等多语言",
+  "system_prompt": "你是一名资深软件工程师，精通多种编程语言。\n\n你的职责：\n1. 根据需求编写可运行的完整代码\n2. 解释代码逻辑和设计决策\n3. 指出潜在问题和优化方向\n4. 回答时使用对应语言的代码块格式",
+  "model_provider": "openai",
+  "model_name": "gpt-4o",
+  "temperature": 0.3,
+  "max_tokens": 4096,
+  "tools": [
+    {
+      "name": "run_code",
+      "description": "执行代码并返回结果",
+      "type": "function",
+      "handler": "code_executor",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "要执行的代码"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "timeout": 15
+    },
+    {
+      "name": "lint_code",
+      "description": "检查代码语法和风格",
+      "type": "function",
+      "handler": "code_lint",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "要检查的代码"
+        },
+        "language": {
+          "type": "string",
+          "default": "python"
+        }
+      },
+      "required": [
+        "code"
+      ]
+    }
+  ],
+  "tags": [
+    "代码",
+    "debug",
+    "review",
+    "多语言"
+  ],
+  "avatar": "💻",
+  "suggested_questions": [
+    "帮我写一个 Python 快速排序",
+    "这段 JavaScript 代码有什么问题？",
+    "SQL 查询太慢怎么优化？"
+  ],
+  "created_at": "2026-06-22T04:27:07.399219+00:00",
+  "updated_at": "2026-06-22T04:27:07.399228+00:00"
+}

@@ -1,0 +1,42 @@
+{
+  "agent_id": "e1190c0e-83b",
+  "name": "教育导师",
+  "description": "教育导师 - 基于模板生成",
+  "system_prompt": "你是一名教育导师。职责：课程设计、学习方法指导、论文辅导、知识讲解。用通俗语言解释复杂概念，因材施教。",
+  "model_provider": "openai",
+  "model_name": "gpt-4o-mini",
+  "temperature": 0.3,
+  "max_tokens": 8192,
+  "tools": [
+    {
+      "description": "搜索学术论文",
+      "name": "search_academic_papers",
+      "properties": {
+        "field": {
+          "default": "all",
+          "type": "string"
+        },
+        "query": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "type": "function"
+    }
+  ],
+  "tags": [
+    "education"
+  ],
+  "avatar": "📚",
+  "suggested_questions": [
+    "帮我设计一个为期一个月的Python入门学习计划",
+    "怎么写好一篇学术论文的文献综述？",
+    "费曼学习法怎么应用到编程学习中？"
+  ],
+  "mode": "simple",
+  "mode_config": {},
+  "created_at": "2026-07-04T15:18:35.176930+00:00",
+  "updated_at": "2026-07-04T15:18:35.176945+00:00"
+}

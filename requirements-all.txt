@@ -1,0 +1,33 @@
+# ═══════════════════════════════════════════════════════
+# AI Agent Hub — 全项目 Python 依赖（按模块分组）
+# ═══════════════════════════════════════════════════════
+# 安装：pip install -r requirements-all.txt
+# 最低 Python 版本：3.10
+
+# ── Web 框架 ──
+fastapi>=0.115
+uvicorn[standard]>=0.30
+
+# ── Agent 核心 ──
+pyyaml>=6.0
+pydantic>=2.0
+
+# ── LLM Provider 适配器 ──
+openai>=1.30              # OpenAI + DeepSeek（OpenAI 兼容 API）
+anthropic>=0.30           # Anthropic Claude
+google-generativeai>=0.6  # Google Gemini
+httpx>=0.27               # Ollama HTTP 客户端
+
+# ── RAG 向量检索引擎 ──
+chromadb>=0.5
+sentence-transformers>=3.0
+tiktoken>=0.7             # Token 精确计数（可选：缺失时字符估算）
+jieba>=0.42               # 中文分词（可选：缺失时 regex）
+
+# ── 文件 & 上传 ──
+PyPDF2>=3.0
+python-multipart>=0.0.9
+aiofiles>=24.0
+
+# ── CLI 工具 ──
+rich>=13.0                # 终端美化（可选：缺失时纯文本）

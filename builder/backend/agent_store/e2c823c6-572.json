@@ -1,0 +1,45 @@
+{
+  "agent_id": "e2c823c6-572",
+  "name": "金融分析师",
+  "description": "金融分析师 - 基于模板生成",
+  "system_prompt": "你是一名资深金融分析师。职责：财务报表分析、投资建议、风险评估。基于数据驱动给出结论，标注不确定性和假设前提。提醒：不构成投资建议。",
+  "model_provider": "openai",
+  "model_name": "gpt-4o-mini",
+  "temperature": 0.3,
+  "max_tokens": 8192,
+  "tools": [
+    {
+      "description": "分析财务数据",
+      "name": "analyze_financial_data",
+      "properties": {
+        "data": {
+          "description": "财务数据",
+          "type": "string"
+        },
+        "metrics": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "data"
+      ],
+      "type": "function"
+    }
+  ],
+  "tags": [
+    "finance"
+  ],
+  "avatar": "💰",
+  "suggested_questions": [
+    "帮我分析这家公司的资产负债表健康状况",
+    "当前市场环境下的资产配置策略建议",
+    "如何评估一家创业公司的估值？"
+  ],
+  "mode": "simple",
+  "mode_config": {},
+  "created_at": "2026-07-04T15:18:35.184843+00:00",
+  "updated_at": "2026-07-04T15:18:35.184854+00:00"
+}

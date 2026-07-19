@@ -1,0 +1,46 @@
+meta:
+  id: com.aihub.29adc0d694
+  name: 教育导师
+  version: 1.0.0
+  author: AI Hub Generator
+  description: 教育导师 - 基于模板生成
+  tags:
+  - education
+  license: MIT
+model:
+  provider: openai
+  model_name: gpt-4o-mini
+  fallback: ''
+  parameters:
+    temperature: 0.3
+    max_tokens: 8192
+    top_p: 0.95
+system_prompt: 你是一名教育导师。职责：课程设计、学习方法指导、论文辅导、知识讲解。用通俗语言解释复杂概念，因材施教。
+tools:
+- name: search_academic_papers
+  description: 搜索学术论文
+  type: function
+  properties:
+    query:
+      type: string
+    field:
+      type: string
+      default: all
+  required:
+  - query
+knowledge:
+- type: url
+  source: https://scholar.google.com/
+- type: url
+  source: https://arxiv.org/
+runtime:
+  language: python
+  min_version: '>=3.10'
+  packages: []
+ui:
+  avatar: 📚
+  welcome_message: 你好！我是教育导师。有什么可以帮你的？
+  suggested_questions:
+  - 帮我设计一个为期一个月的Python入门学习计划
+  - 怎么写好一篇学术论文的文献综述？
+  - 费曼学习法怎么应用到编程学习中？

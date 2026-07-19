@@ -1,0 +1,18 @@
+{
+  "agent_id": "445b9242-52a",
+  "name": "我的 Agent",
+  "description": "前端写代码",
+  "system_prompt": "用于编写前端代码，需要有必备的知识",
+  "model_provider": "deepseek",
+  "model_name": "deepseek-v4-flash",
+  "temperature": 0.7,
+  "max_tokens": 4096,
+  "tools": [],
+  "tags": [],
+  "avatar": "🤖",
+  "suggested_questions": [],
+  "mode": "reflection",
+  "mode_config": {},
+  "created_at": "2026-07-02T11:11:19.221022+00:00",
+  "updated_at": "2026-07-02T11:24:26.819925+00:00"
+}
