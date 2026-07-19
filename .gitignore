@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+
+# Node
+node_modules/
+
+# Docker
+.env
+
+# ── 隐私 & 运行时数据（绝对不能上传） ──
+runtime_logs.jsonl
+*.log
+agent_stats.json
+builder/backend/sessions/
+builder/backend/projects/
+builder/backend/chroma_data/
+builder/backend/agent_memory/
+builder/backend/runtime_config.json   # 本地配置，用 runtime_config.example.json 代替
+builder/backend/uploads/              # 用户上传的文件
+builder/backend/stock-monitor/        # 旧项目残留
+builder/backend/stock_monitor/        # 旧项目残留
+runner/test_output.txt
+agents/*-generated*.yaml              # AI动态生成的Agent（含用户任务数据）
+*.db
+*.sqlite3
+
+# ── 临时文件 ──
+_*.py
+18
+
+# ── 旧构建产物 ──
+agent_hub/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
