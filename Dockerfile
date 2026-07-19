@@ -38,8 +38,8 @@ COPY --from=frontend-builder /dist ./builder/backend/static/
 # 工作目录
 WORKDIR /app/builder/backend
 
-# 配置文件（可通过挂载覆盖）
-COPY builder/backend/runtime_config.json ./runtime_config.json.example
+# 配置文件
+COPY builder/backend/runtime_config.example.json ./runtime_config.json
 
 EXPOSE 8000
 
