@@ -41,11 +41,10 @@ lumiweave = "lumiweave.cli:main"
 Homepage = "https://github.com/lumiweave/lumiweave"
 Repository = "https://github.com/lumiweave/lumiweave"
 
-[tool.setuptools]
-packages = ["shared", "runner", "builder.backend", "lumiweave"]
-package-dir = {"" = ".", "lumiweave" = "lumiweave"}
+[tool.setuptools.packages.find]
+include = ["shared*", "runner*", "builder*", "lumiweave*"]
 
 [tool.setuptools.package-data]
 "builder.backend" = ["agent_store/*.json", "runtime_config.json", "static/**/*"]
-agents = ["*.yaml"]
 "builder.frontend" = ["dist/**/*"]
+"*" = ["*.yaml"]
