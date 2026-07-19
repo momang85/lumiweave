@@ -3,26 +3,37 @@
 # 构建: pyinstaller lumiweave.spec
 # 输出: dist/lumiweave.exe
 
-import os
-import sys
+import os, sys, glob as _glob
 from pathlib import Path
 
-ROOT = Path(__file__).parent
+try:
+    ROOT = Path(SPECPATH)
+except NameError:
+    ROOT = Path(os.getcwd())
+
+os.chdir(str(ROOT))
+
+# 收集所有需要打包的数据文件
+datas = []
+# agent_store JSON
+for f in _glob.glob('builder/backend/agent_store/*.json'):
+    datas.append((f, os.path.dirname(f)))
+# runtime config example
+datas.append(('builder/backend/runtime_config.example.json', 'builder/backend'))
+# frontend built files
+for f in _glob.glob('builder/frontend/dist/**/*', recursive=True):
+    if os.path.isfile(f):
+        rel = os.path.relpath(os.path.dirname(f), 'builder/frontend')
+        datas.append((f, f'builder/frontend/{rel}'))
+# agent YAML files
+for f in _glob.glob('agents/*.yaml'):
+    datas.append((f, 'agents'))
 
 a = Analysis(
     ['lumiweave/launcher.py'],
     pathex=[str(ROOT)],
     binaries=[],
-    datas=[
-        ('builder/backend/agent_store/*.json', 'builder/backend/agent_store'),
-        ('builder/backend/runtime_config.json', 'builder/backend'),
-        ('builder/frontend/dist/**/*', 'builder/frontend/dist'),
-        ('agents/*.yaml', 'agents'),
-        ('shared/**/*.py', 'shared'),
-        ('runner/**/*.py', 'runner'),
-        ('builder/backend/**/*.py', 'builder/backend'),
-        ('builder/backend/static/**/*', 'builder/backend/static'),
-    ],
+    datas=datas,
     hiddenimports=[
         'uvicorn', 'uvicorn.loops', 'uvicorn.loops.auto',
         'uvicorn.protocols', 'uvicorn.protocols.http',
@@ -48,12 +59,7 @@ a = Analysis(
 pyz = PYZ(a.pure, a.zipped_data, cipher=None)
 
 exe = EXE(
-    pyz,
-    a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    [],
+    pyz, a.scripts, a.binaries, a.zipfiles, a.datas, [],
     name='lumiweave',
     debug=False,
     bootloader_ignore_signals=False,

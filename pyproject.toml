@@ -7,7 +7,7 @@ name = "lumiweave"
 version = "0.4.0"
 description = "LumiWeave — AI Agent协作工作台，契约驱动多Agent自动编程"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 requires-python = ">=3.10"
 authors = [{name = "LumiWeave Team"}]
 keywords = ["ai", "agent", "multi-agent", "orchestrator", "llm", "mcp"]
