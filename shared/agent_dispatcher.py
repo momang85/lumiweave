@@ -613,8 +613,8 @@ class AgentDispatcher:
                 "关键规则：\n"
                 "1. 第一步就用 write_file 创建要求的文件，不要先 list_dir/read_file 探索\n"
                 "2. 你只有有限的工具调用次数，优先用于创建文件而非探索\n"
-                "3. 创建完所有文件后再用 read_file 确认\n"
-                "4. 如果没有明确要求探索项目结构，跳过 list_dir\n\n"
+                "3. 创建完文件后，用 write_context 声明你的接口约定（字段名、数据格式），方便其他Agent对接\n"
+                "4. 完成后用 read_file 确认文件存在且内容完整\n\n"
             )
             sub_prompt = _sub_agent_mode + sub_system_prompt[:8000]
             ir_messages = [MessageIR(role="system", content=sub_prompt)]

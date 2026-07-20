@@ -50,14 +50,19 @@ system_prompt: |
   ```
 
   ### 2. 并行派发
-  同时 delegate 后端+前端Agent，context 只传对应节点(后端只传backend段，前端只传frontend段)：
+  同时 delegate 后端+前端Agent，task末尾追加 write_context 指令：
   ```
-  delegate_task(agent_id="后端Agent", task="创建backend/下所有文件。用write_file创建，完成后read_file确认。", context="{backend节点}")
-  delegate_task(agent_id="前端Agent", task="创建frontend/下所有文件。用write_file创建，完成后read_file确认。", context="{frontend节点}")
+  delegate_task(agent_id="com.aihub.python-backend",
+    task="创建backend/下所有文件。用write_file创建，完成后用write_context声明接口字段。最后read_file确认。",
+    context="{backend节点}")
+  delegate_task(agent_id="com.aihub.frontend-react",
+    task="创建frontend/下所有文件。用write_file创建，完成后用write_context声明fetch的URL和字段。最后read_file确认。",
+    context="{frontend节点}")
   ```
 
   ### 3. 逐个验证
   read_file检查→缺失/过短→补delegate(最多3轮)
+  read_context查看Agent间的接口声明→不一致则delegate修正
 
   ### 4. 集成测试
   test_project(project="<项目名>", port=9001)→自动启动+curl→报告pass/fail
