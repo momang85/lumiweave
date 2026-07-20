@@ -30,7 +30,8 @@ from typing import Optional
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 # ── 确保能找到 runner 模块 ──
@@ -76,6 +77,25 @@ app.add_middleware(
 # ── 确保上传目录存在 ──
 UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploads")
 Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
+
+# v2.4: 静态文件服务（前端SPA）
+_STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+if os.path.isdir(_STATIC_DIR):
+    app.mount("/assets", StaticFiles(directory=os.path.join(_STATIC_DIR, "assets")), name="assets")
+    
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        """SPA fallback: 所有非API路由返回 index.html"""
+        if full_path.startswith("api/"):
+            raise HTTPException(404)
+        index_path = os.path.join(_STATIC_DIR, "index.html")
+        if os.path.isfile(index_path):
+            return FileResponse(index_path)
+        raise HTTPException(404)
+else:
+    @app.get("/")
+    async def no_frontend():
+        return {"message": "LumiWeave API 已启动。前端请访问 builder/frontend (npm run dev)", "docs": "/docs"}
 
 
 # ══════════════════════════════════════════════
