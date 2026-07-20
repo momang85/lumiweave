@@ -174,21 +174,30 @@ export function useAgentChat(
               ]
             }
             if (event.type === 'tool_call') {
+              // 只显示工具名称，不累积
               return [
                 ...prev.slice(0, -1),
                 {
                   ...last,
-                  content: last.content + `\n[调用工具: ${event.name}]`,
+                  content: last.content.replace(/\n🔧.*$/, '') + `\n🔧 ${event.name || ''}`,
                   toolName: event.name,
                 },
               ]
             }
             if (event.type === 'info') {
-              // v0.5.1: 显示进度提示（"正在分析..." / "正在生成回答..."）
-              return [
-                ...prev.slice(0, -1),
-                { ...last, content: last.content + (event.content ? `[系统: ${event.content}]\n` : '') },
-              ]
+              const c = (event.content || '')
+              // 跳过纯工具执行日志（这些进 RuntimeLogs）
+              if (c.includes('[执行工具]') || c.includes('工具调用结果') || c.includes('[工具调用]') || c.includes('上下文:')) {
+                return prev
+              }
+              // 只显示关键状态更新
+              if (c.includes('正在分析') || c.includes('正在生成') || c.includes('完成')) {
+                return [
+                  ...prev.slice(0, -1),
+                  { ...last, content: last.content + `\n${c}` },
+                ]
+              }
+              return prev
             }
             if (event.type === 'reasoning') {
               // DeepSeek R1 思维链 — 连续累积，不截断

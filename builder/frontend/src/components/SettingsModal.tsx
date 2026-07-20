@@ -80,8 +80,8 @@ export default function SettingsModal({ open, onClose }: Props) {
   const [sync, setSync] = useState(0)
 
   // v0.6.1: 运行时配置 — localStorage 双重持久化
-  const [rtConfig, setRtConfig] = useState<Record<string, number | boolean> | null>(null)
-  const [rtDefaults, setRtDefaults] = useState<Record<string, number | boolean> | null>(null)
+  const [rtConfig, setRtConfig] = useState<Record<string, number | boolean | string> | null>(null)
+  const [rtDefaults, setRtDefaults] = useState<Record<string, number | boolean | string> | null>(null)
   const [rtDirty, setRtDirty] = useState(false)
 
   // 打开时：同步 localStorage → 后端，然后拉取最新状态
@@ -397,7 +397,10 @@ export default function SettingsModal({ open, onClose }: Props) {
 
 /* ── 工具预设立行 ── */
 /* ── 运行参数面板 ── */
-const RT_PARAMS: { key: string; label: string; desc: string; type: 'int' | 'bool' }[] = [
+const RT_PARAMS: { key: string; label: string; desc: string; type: 'int' | 'bool' | 'str' }[] = [
+  { key: 'llm_proxy', label: 'LLM代理', desc: 'HTTP代理地址(如 http://127.0.0.1:7897)', type: 'str' },
+  { key: 'web_search_proxy', label: '搜索代理', desc: '网页搜索HTTP代理', type: 'str' },
+  { key: 'sub_agent_model', label: '子Agent模型', desc: '快模型名称', type: 'str' },
   { key: 'max_tool_iterations', label: '调度器最大工具轮次', desc: '单次会话最多工具调用', type: 'int' },
   { key: 'max_delegate_calls', label: '最大委托次数', desc: '最多 delegate_task 调用', type: 'int' },
   { key: 'max_sub_iterations', label: '子Agent最大迭代', desc: '每个子Agent工具轮次上限', type: 'int' },
@@ -423,19 +426,24 @@ const RT_PARAMS: { key: string; label: string; desc: string; type: 'int' | 'bool
 ]
 
 function RuntimeConfigPanel({ config, defaults, onSave, onChange, dirty }: {
-  config: Record<string, number | boolean>
-  defaults: Record<string, number | boolean>
-  onSave: (updated: Record<string, number | boolean>) => void
+  config: Record<string, number | boolean | string>
+  defaults: Record<string, number | boolean | string>
+  onSave: (updated: Record<string, number | boolean | string>) => void
   onChange: () => void
   dirty: boolean
 }) {
-  const [values, setValues] = useState<Record<string, number | boolean>>({})
+  const [values, setValues] = useState<Record<string, number | boolean | string>>({})
 
   useEffect(() => { setValues({ ...config }) }, [config])
 
   const handleChange = (key: string, val: string | boolean) => {
-    const parsed = typeof config[key] === 'boolean' ? Boolean(val) : Number(val) || 0
-    setValues(prev => ({ ...prev, [key]: parsed }))
+    if (typeof config[key] === 'string' || (config[key] === undefined && key.includes('proxy'))) {
+      setValues(prev => ({ ...prev, [key]: String(val) }))
+    } else if (typeof config[key] === 'boolean') {
+      setValues(prev => ({ ...prev, [key]: Boolean(val) }))
+    } else {
+      setValues(prev => ({ ...prev, [key]: Number(val) || 0 }))
+    }
     onChange()
   }
 
@@ -465,6 +473,16 @@ function RuntimeConfigPanel({ config, defaults, onSave, onChange, dirty }: {
                     className="sr-only peer" />
                   <div className="w-7 h-4 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-3 peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all" />
                 </label>
+              ) : param.type === 'str' ? (
+                <div className="flex items-center gap-1 shrink-0">
+                  <input
+                    type="text"
+                    value={String(val || '')}
+                    onChange={e => handleChange(param.key, e.target.value)}
+                    className={`w-32 text-center border rounded-md py-0.5 text-[10px] focus:outline-none focus:border-blue-400 ${changed ? 'border-blue-300 bg-blue-50' : 'border-gray-200'}`}
+                    placeholder="留空=直连"
+                  />
+                </div>
               ) : (
                 <div className="flex items-center gap-1 shrink-0">
                   <input

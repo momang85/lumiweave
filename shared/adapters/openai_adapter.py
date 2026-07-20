@@ -63,15 +63,12 @@ class OpenAIAdapter(BaseAdapter):
                 "max_retries": self.config.max_retries,
             }
 
-            # v2.3: 代理——直接注入 httpx transport
+            # v2.4: 代理——环境变量注入（httpx自动读取，Python3.14兼容）
             proxy = self.config.proxy or os.getenv("LLM_PROXY", "")
             if proxy:
-                try:
-                    import httpx
-                    transport = httpx.HTTPTransport(proxy=proxy)
-                    kwargs["http_client"] = httpx.Client(transport=transport)
-                except Exception:
-                    pass  # 降级：httpx transport 失败则无代理
+                os.environ["HTTP_PROXY"] = proxy
+                os.environ["HTTPS_PROXY"] = proxy
+                os.environ["NO_PROXY"] = "localhost,127.0.0.1"
 
             self._client = openai.OpenAI(**kwargs)
 

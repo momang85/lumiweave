@@ -1,0 +1,84 @@
+{
+  "project": "simple-3d-fps-game",
+  "description": "一个完整的3D第一人称射击游戏，包含场景、角色控制、武器系统、敌人AI等核心功能",
+  "backend": {
+    "api": {
+      "endpoints": [
+        {
+          "path": "/api/game/state",
+          "method": "GET",
+          "description": "获取游戏状态（玩家生命值、弹药、分数等）",
+          "response_fields": {
+            "health": "玩家生命值",
+            "ammo": "当前弹药",
+            "score": "当前分数",
+            "enemies_alive": "存活的敌人数量",
+            "game_time": "游戏进行时间"
+          }
+        },
+        {
+          "path": "/api/game/reset",
+          "method": "POST",
+          "description": "重置游戏状态",
+          "response_fields": {
+            "message": "重置成功消息",
+            "new_state": "新的游戏状态"
+          }
+        }
+      ]
+    },
+    "implementation": {
+      "storage": "内存存储游戏状态",
+      "cors": "allow_origins=['*']",
+      "error_format": "{\"error\":\"message\"} + HTTP状态码",
+      "startup": "uvicorn main:app --port 8001 --reload"
+    },
+    "files": [
+      {
+        "name": "main.py",
+        "min_lines": 40,
+        "description": "FastAPI后端，提供游戏状态API"
+      },
+      {
+        "name": "requirements.txt",
+        "min_lines": 3,
+        "description": "Python依赖包列表"
+      }
+    ]
+  },
+  "frontend": {
+    "framework": "vanilla",
+    "description": "基于Three.js的3D FPS游戏前端",
+    "files": [
+      {
+        "name": "index.html",
+        "min_lines": 30,
+        "description": "主HTML文件，包含游戏画布和UI元素"
+      },
+      {
+        "name": "game.js",
+        "min_lines": 150,
+        "description": "游戏主逻辑：Three.js场景、相机、渲染器、角色控制、武器系统、敌人AI"
+      },
+      {
+        "name": "style.css",
+        "min_lines": 30,
+        "description": "游戏界面样式"
+      },
+      {
+        "name": "assets/",
+        "min_lines": 0,
+        "description": "资源目录（纹理、模型等）"
+      }
+    ],
+    "features": [
+      "第一人称视角控制",
+      "WASD移动和鼠标视角控制",
+      "武器射击系统",
+      "敌人AI（巡逻、追击、攻击）",
+      "碰撞检测",
+      "游戏UI（生命值、弹药、分数）",
+      "简单的3D场景（地面、墙壁、障碍物）"
+    ]
+  }
+}
