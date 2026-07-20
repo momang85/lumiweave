@@ -78,25 +78,6 @@ app.add_middleware(
 UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploads")
 Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
 
-# v2.4: 静态文件服务（前端SPA）
-_STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
-if os.path.isdir(_STATIC_DIR):
-    app.mount("/assets", StaticFiles(directory=os.path.join(_STATIC_DIR, "assets")), name="assets")
-    
-    @app.get("/{full_path:path}")
-    async def serve_spa(full_path: str):
-        """SPA fallback: 所有非API路由返回 index.html"""
-        if full_path.startswith("api/"):
-            raise HTTPException(404)
-        index_path = os.path.join(_STATIC_DIR, "index.html")
-        if os.path.isfile(index_path):
-            return FileResponse(index_path)
-        raise HTTPException(404)
-else:
-    @app.get("/")
-    async def no_frontend():
-        return {"message": "LumiWeave API 已启动。前端请访问 builder/frontend (npm run dev)", "docs": "/docs"}
-
 
 # ══════════════════════════════════════════════
 # Pydantic 模型
@@ -1350,6 +1331,27 @@ def api_health():
 if enhanced_router is not None:
     app.include_router(enhanced_router)
 
+
+# ══════════════════════════════════════════════
+# v2.4: 静态文件服务（在最后，不拦截API路由）
+# ══════════════════════════════════════════════
+
+_STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+if os.path.isdir(_STATIC_DIR):
+    app.mount("/assets", StaticFiles(directory=os.path.join(_STATIC_DIR, "assets")), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        if full_path.startswith("api/") or full_path.startswith("docs"):
+            raise HTTPException(404)
+        index_path = os.path.join(_STATIC_DIR, "index.html")
+        if os.path.isfile(index_path):
+            return FileResponse(index_path)
+        raise HTTPException(404)
+else:
+    @app.get("/")
+    async def no_frontend():
+        return {"message": "LumiWeave API", "docs": "/docs"}
 
 # ══════════════════════════════════════════════
 # 入口

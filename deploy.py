@@ -18,6 +18,7 @@ run('git commit -m "fix: pip install support"')
 run('git remote remove origin')
 run('git remote add origin https://github.com/momang85/lumiweave.git')
 run('git push -u origin master --force', timeout=30)
+run('git push -u origin master:main --force', timeout=30)
 
 print('[2/3] Build exe...')
 if not os.path.exists('dist/lumiweave.exe'):

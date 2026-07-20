@@ -33,9 +33,10 @@ def main():
         print(f"  LumiWeave 启动中...")
         print(f"  浏览器打开: http://localhost:{port}")
         _patch_sys_path()
-        import uvicorn
-        uvicorn.run("main:app", host="0.0.0.0", port=int(port), log_level="info",
-                    app_dir=os.path.join(os.path.dirname(__file__), "..", "builder", "backend"))
+        import uvicorn, os as _os2
+        backend_dir = os.path.join(os.path.dirname(__file__), "..", "builder", "backend")
+        _os2.chdir(os.path.abspath(backend_dir))
+        uvicorn.run("main:app", host="0.0.0.0", port=int(port), log_level="info")
 
     elif cmd == "run":
         task = args[1] if len(args) > 1 else ""
