@@ -132,6 +132,7 @@ export default function ChatMessage({ msg, onSelectChoice, onFillAnswer, isStrea
   const [expanded, setExpanded] = useState(false)
   const [showThinking, setShowThinking] = useState(false)
   const [fillValue, setFillValue] = useState('')
+  const [selections, setSelections] = useState<Record<number, string>>({})
 
   // 分离思考过程和正文
   const { thinking, mainContent } = useMemo(() => {
@@ -238,35 +239,47 @@ export default function ChatMessage({ msg, onSelectChoice, onFillAnswer, isStrea
                 <div key={si}>
                   <div className="text-[11px] font-semibold text-gray-700 mb-1.5">
                     {section.title}
-                    {section.isMulti && <span className="text-gray-400 font-normal ml-1">（可多选）</span>}
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {section.options.map((opt, oi) => (
-                      <button
-                        key={oi}
-                        onClick={() => {
-                          const answer = choiceSections.map(s => {
-                            const first = s.options[0]
-                            return first ? { title: s.title, choice: first } : null
-                          }).filter(Boolean)
-                          // For now, just send the first option of each section for simplicity
-                          const allAnswers = choiceSections.map((s, i) => {
-                            if (i === si) return opt // selected section gets clicked option
-                            return null // other sections leave null
-                          }).filter(Boolean)
-                          const answers = choiceSections.length === 1 
-                            ? opt 
-                            : `${section.title}: ${opt}`
-                          onSelectChoice?.(section.title, answers)
-                        }}
-                        className="px-3 py-1.5 text-[12px] rounded-full border border-primary-300 text-primary-700 bg-primary-50 hover:bg-primary-100 hover:border-primary-500 transition-colors"
-                      >
-                        {opt}
-                      </button>
-                    ))}
+                    {section.options.map((opt, oi) => {
+                      const isSel = selections[si] === opt
+                      return (
+                        <button
+                          key={oi}
+                          onClick={() => {
+                            const up = { ...selections }
+                            if (selections[si] === opt) delete up[si]
+                            else up[si] = opt
+                            setSelections(up)
+                          }}
+                          className={`px-3 py-1.5 text-[12px] rounded-full border transition-colors ${
+                            isSel
+                              ? 'border-primary-500 bg-primary-600 text-white'
+                              : 'border-primary-300 text-primary-700 bg-primary-50 hover:bg-primary-100'
+                          }`}
+                        >
+                          {isSel && '✓ '}{opt}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               ))}
+              {Object.keys(selections).length > 0 && (
+                <button
+                  onClick={() => {
+                    const answers = choiceSections
+                      .map((s, i) => selections[i] ? `${s.title}: ${selections[i]}` : null)
+                      .filter(Boolean)
+                      .join('\n')
+                    onSelectChoice?.('', answers)
+                    setSelections({})
+                  }}
+                  className="w-full py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  提交选择 →
+                </button>
+              )}
             </div>
           )}
 
