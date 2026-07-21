@@ -870,13 +870,17 @@ class AgentDispatcher:
             except ImportError:
                 pass
 
-            # 增强错误提示：判断是否为网络/连接问题
+            # 增强错误提示
             hint = ""
             lower_err = error_str.lower()
-            if any(kw in lower_err for kw in ("connection", "timeout", "timed out", "refused", "reset")):
+            if not error_str and tool_call_count == 0:
+                # 连接失败且无错误信息 = 大概率网络/代理问题
+                error_str = "无法连接到LLM服务（请求超时或网络不通）。请检查：1) Settings中是否配置了LLM代理 2) API Key是否有效 3) 网络是否正常"
+                lower_err = error_str.lower()
+            if any(kw in lower_err for kw in ("connection", "timeout", "timed out", "refused", "reset", "无法连接")):
                 hint = (
-                    f"（网络不通：请检查是否已配置 LLM_PROXY 环境变量或 llm_proxy 运行时配置，"
-                    f"当前有效 provider={effective_provider}）"
+                    f"（网络不通：请在 Settings → 运行参数 中设置 llm_proxy，"
+                    f"例如 http://127.0.0.1:7897）"
                 )
 
             # v2.0: 失败自动换人 — 尝试候选列表中下一个 Agent
@@ -898,7 +902,7 @@ class AgentDispatcher:
                 "output": "",
                 "tool_calls": 0,
                 "agent_name": agent_info.name,
-                "error": f"{str(e)}{hint}",
+                "error": f"{error_str}{hint}",
             }
 
     def get_session_status(self) -> dict:

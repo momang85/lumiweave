@@ -26,6 +26,9 @@ builder/backend/stock-monitor/        # 旧项目残留
 builder/backend/stock_monitor/        # 旧项目残留
 runner/test_output.txt
 agents/*-generated*.yaml              # AI动态生成的Agent（含用户任务数据）
+builder/backend/agent_store/*.json    # 除核心外动态生成
+!builder/backend/agent_store/com.aihub.planner.json
+!builder/backend/agent_store/c20420f90eb0.json
 *.db
 *.sqlite3
 
