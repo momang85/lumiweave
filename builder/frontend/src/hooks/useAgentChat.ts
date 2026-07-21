@@ -174,12 +174,12 @@ export function useAgentChat(
               ]
             }
             if (event.type === 'tool_call') {
-              // 只显示工具名称，不累积
+              // 在思考区展示
               return [
                 ...prev.slice(0, -1),
                 {
                   ...last,
-                  content: last.content.replace(/\n🔧.*$/, '') + `\n🔧 ${event.name || ''}`,
+                  thinking: (last as any).thinking + `\n🔧 ${event.name || ''}`,
                   toolName: event.name,
                 },
               ]

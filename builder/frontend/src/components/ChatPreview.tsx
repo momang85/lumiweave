@@ -174,7 +174,13 @@ export default function ChatPreview({ agent, sessionId, onOrchestrationChange }:
         )}
 
         {messages.map((msg) => (
-          <ChatMessage key={msg.id} msg={msg} />
+          <ChatMessage
+            key={msg.id}
+            msg={msg}
+            isStreaming={isStreaming && msg === messages[messages.length - 1]}
+            onSelectChoice={(question, answer) => sendMessage(`${question}\n我的选择：${answer}`)}
+            onFillAnswer={(question, answer) => sendMessage(`${question}\n我的回答：${answer}`)}
+          />
         ))}
 
         {isStreaming && (
