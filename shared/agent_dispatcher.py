@@ -328,12 +328,29 @@ class AgentDispatcher:
             yaml_path = found if found else None
 
         if not yaml_path:
-            return {
-                "success": False,
-                "output": "",
-                "tool_calls": 0,
-                "error": f"Agent {agent_id} 的 YAML 文件未找到",
-            }
+            # v2.5: Agent不存在 → 自动生成
+            logger.info(f"Agent '{agent_id}' 未找到，尝试自动生成...")
+            try:
+                from shared.agent_generator import AgentGenerator
+                gen = AgentGenerator(api_key=api_key, provider=provider, model=model or "Qwen/Qwen3.5-35B-A3B")
+                desc = f"{agent_id} 开发专家。接收开发任务创建代码文件。"
+                new_agent = gen.generate(description=desc)
+                if new_agent:
+                    logger.info(f"自动生成Agent成功: {new_agent.agent_id}")
+                    # 重新搜索
+                    yaml_path = AgentFileStore._find_agent_file(agent_id)
+                    if not yaml_path:
+                        yaml_path = AgentFileStore._find_agent_file(new_agent.agent_id)
+            except Exception as e:
+                logger.warning(f"自动生成Agent失败，继续执行: {e}")
+            
+            if not yaml_path:
+                return {
+                    "success": False,
+                    "output": "",
+                    "tool_calls": 0,
+                    "error": f"Agent {agent_id} 的 YAML 文件未找到，自动创建也失败",
+                }
 
         # 执行子 Agent — v0.5.1: 复用 orchestrator 的 LLM 配置
         start = time.time()
