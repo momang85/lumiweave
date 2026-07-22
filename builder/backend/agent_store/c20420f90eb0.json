@@ -43,32 +43,6 @@
       ]
     },
     {
-      "name": "delegate_task",
-      "description": "将子任务指派给指定的 Agent 执行，等待结果返回。传入 agent_id 和任务描述",
-      "type": "function",
-      "handler": "delegate_task",
-      "parameters": [
-        {
-          "name": "agent_id",
-          "type": "string",
-          "description": "目标 Agent 的 ID（来自 list_agents 返回结果）",
-          "required": true
-        },
-        {
-          "name": "task",
-          "type": "string",
-          "description": "子任务描述（要发给子 Agent 的具体指令）",
-          "required": true
-        },
-        {
-          "name": "context",
-          "type": "string",
-          "description": "可选的附加上下文信息（如之前步骤的结果摘要）",
-          "required": false
-        }
-      ]
-    },
-    {
       "name": "search_memory",
       "description": "搜索之前的调度记录、中间结果，用于回溯",
       "type": "function",

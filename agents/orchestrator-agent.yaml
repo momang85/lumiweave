@@ -1,251 +1,224 @@
-# ============================================================
-# AI Agent Hub — 中央调度 Agent (Orchestrator)
-#
-# 职责：制定JSON契约 → 并行分派 → 集成验证 → 修正循环
-# 你是"项目经理"，不是"开发工程师"，代码由子Agent写
-# ============================================================
-
+knowledge: []
 meta:
-  id: com.aihub.orchestrator
-  name: Agent调度中心
-  version: 2.0.0
   author: AI Hub Builder
   description: 中央调度Agent：创建结构化契约、分派子Agent、验证集成交付、修正循环
-  tags:
-    - 调度
-    - 编排
-    - 多Agent协作
-    - 任务规划
-    - 契约驱动
+  id: com.aihub.orchestrator
   license: MIT
-
+  name: Agent调度中心
+  tags:
+  - 调度
+  - 编排
+  - 多Agent协作
+  - 任务规划
+  - 契约驱动
+  version: 2.0.0
 model:
-  provider: deepseek
+  fallback: ''
   model_name: deepseek-chat
-  fallback: ""
   parameters:
-    temperature: 0.3
     max_tokens: 8192
-
-system_prompt: |
-  ## 角色
-  你是PM，不是开发。**代码由子Agent写**，你只做：制定contract→派发→验证→修正。
-
-  ## 铁律
-  - write_file 只写 contract.json / RUN.md / BUG_REPORT.md，绝不写代码文件(.py/.js/.html)
-  - 一个 delegate 只做一件事。并行派发后端+前端
-  - **Agent优先级**：后端→com.aihub.python-backend，前端→com.aihub.frontend-react。只有这些都不存在时才用通用Agent
-  - 每次 delegate 后立即验证：read_file 检查文件存在+行数>=min_lines
-  - 缺失立即补 delegate(task明确说"上次委托你写X但文件未创建，请重新创建")
-
-  ## 工作流
-
-  第一步：write_file(contract.json)
-  第二步：dispatch_to_agents(project_dir="projects/xxx", task="完整需求描述")
-  第三步：read_file 检查结果 → test_project 测试
-
-  **铁律：绝不自己写代码(.py/.js/.html)，绝不 delegate_task 给自己。**
-  read_context查共享上下文→有失败端点→delegate补修→重测
-
-  ### 6. 交付
-  写RUN.md→输出总结
-
-tools:
-  - name: dispatch_to_agents
-    description: 一键派发后端+前端开发任务。自动创建缺失Agent并行执行。项目task描述和project_dir路径。
-    type: function
-    handler: dispatch_to_agents
-    parameters:
-      - name: task
-        type: string
-        description: 完整任务描述
-        required: true
-      - name: project_dir
-        type: string
-        description: 项目目录，如 projects/myapp
-        required: true
-
-  - name: list_agents
-    description: 列出系统中所有可用的子 Agent，返回每个 Agent 的 id、名称、描述、能力标签
-    type: function
-    handler: list_agents
-    parameters:
-      - name: filter_tag
-        type: string
-        description: 按标签筛选（如 '后端开发', '法律'），传空串返回全部
-        required: false
-
-  - name: delegate_task
-    description: 将子任务指派给指定的 Agent 执行，等待结果返回。传入 agent_id 和任务描述
-    type: function
-    handler: delegate_task
-    parameters:
-      - name: agent_id
-        type: string
-        description: 目标 Agent 的 ID（来自 list_agents 返回结果）
-        required: true
-      - name: task
-        type: string
-        description: 子任务描述（要发给子 Agent 的具体指令）
-        required: true
-      - name: context
-        type: string
-        description: 可选的附加上下文信息（如之前步骤的结果摘要）
-        required: false
-
-  - name: search_memory
-    description: 搜索之前的调度记录、中间结果，用于回溯
-    type: function
-    handler: search_memory
-    parameters:
-      - name: query
-        type: string
-        description: 搜索关键词
-        required: false
-
-  - name: create_agent
-    description: 当系统没有合适的子Agent时，AI自动生成一个新的Agent。新Agent会自动注册并使用当前调度Agent的模型。创建后可直接delegate_task调用。
-    type: function
-    handler: create_agent
-    parameters:
-      - name: description
-        type: string
-        description: 新Agent的功能描述（自然语言，包含专业领域和预期能力）
-        required: true
-      - name: domain
-        type: string
-        description: 领域分类（legal|finance|medical|education|marketing|customer_service|creative|backend|frontend|ai_ml|devops|general）
-        required: false
-
-  - name: read_file
-    description: 读取本地文件内容。用于查看生成的代码、配置文件、日志等
-    type: function
-    handler: read_file
-    parameters:
-      - name: path
-        type: string
-        description: 文件路径（相对于项目根目录）
-        required: true
-      - name: limit
-        type: integer
-        description: 最多读取行数，默认 500
-        required: false
-
-  - name: write_file
-    description: 写入文件内容。用于创建/修改代码文件、配置文件等。如果文件已存在需设置 overwrite=true
-    type: function
-    handler: write_file
-    parameters:
-      - name: path
-        type: string
-        description: 文件路径（相对于项目根目录）
-        required: true
-      - name: content
-        type: string
-        description: 要写入的完整内容
-        required: true
-      - name: overwrite
-        type: boolean
-        description: 是否覆盖已有文件，默认 false
-        required: false
-
-  - name: list_dir
-    description: 列出目录内容。用于浏览项目结构
-    type: function
-    handler: list_dir
-    parameters:
-      - name: path
-        type: string
-        description: 目录路径，默认当前目录
-        required: false
-
-  - name: search_file
-    description: 按文件名模式搜索文件。用于查找特定文件
-    type: function
-    handler: search_file
-    parameters:
-      - name: pattern
-        type: string
-        description: 文件名模式（如 *.py, *.yaml, main*）
-        required: true
-      - name: directory
-        type: string
-        description: 搜索目录，默认项目根目录
-        required: false
-
-  - name: run_command
-    description: 在本地执行 shell 命令并获取输出。用于运行代码、安装依赖、查看结果等
-    type: function
-    handler: run_command
-    parameters:
-      - name: command
-        type: string
-        description: 要执行的 shell 命令
-        required: true
-      - name: timeout
-        type: integer
-        description: 超时时间（秒），默认 15，最大 60
-        required: false
-
-  - name: web_search
-    description: 搜索互联网获取实时信息。用于查询最新API文档、实时行情、规则法规等。使用DuckDuckGo免费搜索
-    type: function
-    handler: web_search
-    parameters:
-      - name: query
-        type: string
-        description: 搜索关键词或问题
-        required: true
-
-  - name: validate_contract
-    description: 根据 contract.json 验证前后端代码接口一致性。检查前端fetch URL是否匹配契约endpoint、字段名是否匹配
-    type: function
-    handler: validate_contract
-    parameters:
-      - name: project
-        type: string
-        description: 项目名称（如 "a-stock-monitor"）或 contract.json 路径
-        required: true
-
-  - name: test_project
-    description: 自动测试项目：启动后端→curl所有contract端点→报告pass/fail。自动安装依赖
-    type: function
-    handler: test_project
-    parameters:
-      - name: project
-        type: string
-        description: 项目目录名
-        required: true
-      - name: port
-        type: integer
-        description: 测试端口（默认9001）
-        required: false
-
-  - name: read_context
-    description: 读取项目中Agent间共享上下文（SHARED_CONTEXT.md），了解前后端接口约定
-    type: function
-    handler: read_context
-    parameters:
-      - name: project
-        type: string
-        description: 项目目录名
-        required: true
-
-knowledge: []
-
+    temperature: 0.3
+  provider: deepseek
 runtime:
   language: python
-  min_version: ">=3.10"
-  packages:
-    - openai
+  min_version: '>=3.10'
   mode: simple
   mode_config:
     max_iterations: 15
+  packages:
+  - openai
+system_prompt: '## 角色
 
+  你是PM，不是开发。**代码由子Agent写**，你只做：制定contract→派发→验证→修正。
+
+
+  ## 铁律
+
+  - write_file 只写 contract.json / RUN.md / BUG_REPORT.md，绝不写代码文件(.py/.js/.html)
+
+  - 一个 delegate 只做一件事。并行派发后端+前端
+
+  - **Agent优先级**：后端→com.aihub.python-backend，前端→com.aihub.frontend-react。只有这些都不存在时才用通用Agent
+
+  - 每次 delegate 后立即验证：read_file 检查文件存在+行数>=min_lines
+
+  - 缺失立即补 delegate(task明确说"上次委托你写X但文件未创建，请重新创建")
+
+
+  ## 工作流
+
+
+  第一步：write_file(contract.json)
+
+  第二步：dispatch_to_agents(project_dir="projects/xxx", task="完整需求描述")
+
+  第三步：read_file 检查结果 → test_project 测试
+
+
+  **铁律：绝不自己写代码(.py/.js/.html)，绝不 delegate_task 给自己。**
+
+  read_context查共享上下文→有失败端点→delegate补修→重测
+
+
+  ### 6. 交付
+
+  写RUN.md→输出总结
+
+  '
+tools:
+- description: 一键派发后端+前端开发任务。自动创建缺失Agent并行执行。项目task描述和project_dir路径。
+  handler: dispatch_to_agents
+  name: dispatch_to_agents
+  parameters:
+  - description: 完整任务描述
+    name: task
+    required: true
+    type: string
+  - description: 项目目录，如 projects/myapp
+    name: project_dir
+    required: true
+    type: string
+  type: function
+- description: 列出系统中所有可用的子 Agent，返回每个 Agent 的 id、名称、描述、能力标签
+  handler: list_agents
+  name: list_agents
+  parameters:
+  - description: 按标签筛选（如 '后端开发', '法律'），传空串返回全部
+    name: filter_tag
+    required: false
+    type: string
+  type: function
+- description: 搜索之前的调度记录、中间结果，用于回溯
+  handler: search_memory
+  name: search_memory
+  parameters:
+  - description: 搜索关键词
+    name: query
+    required: false
+    type: string
+  type: function
+- description: 当系统没有合适的子Agent时，AI自动生成一个新的Agent。新Agent会自动注册并使用当前调度Agent的模型。创建后可直接delegate_task调用。
+  handler: create_agent
+  name: create_agent
+  parameters:
+  - description: 新Agent的功能描述（自然语言，包含专业领域和预期能力）
+    name: description
+    required: true
+    type: string
+  - description: 领域分类（legal|finance|medical|education|marketing|customer_service|creative|backend|frontend|ai_ml|devops|general）
+    name: domain
+    required: false
+    type: string
+  type: function
+- description: 读取本地文件内容。用于查看生成的代码、配置文件、日志等
+  handler: read_file
+  name: read_file
+  parameters:
+  - description: 文件路径（相对于项目根目录）
+    name: path
+    required: true
+    type: string
+  - description: 最多读取行数，默认 500
+    name: limit
+    required: false
+    type: integer
+  type: function
+- description: 写入文件内容。用于创建/修改代码文件、配置文件等。如果文件已存在需设置 overwrite=true
+  handler: write_file
+  name: write_file
+  parameters:
+  - description: 文件路径（相对于项目根目录）
+    name: path
+    required: true
+    type: string
+  - description: 要写入的完整内容
+    name: content
+    required: true
+    type: string
+  - description: 是否覆盖已有文件，默认 false
+    name: overwrite
+    required: false
+    type: boolean
+  type: function
+- description: 列出目录内容。用于浏览项目结构
+  handler: list_dir
+  name: list_dir
+  parameters:
+  - description: 目录路径，默认当前目录
+    name: path
+    required: false
+    type: string
+  type: function
+- description: 按文件名模式搜索文件。用于查找特定文件
+  handler: search_file
+  name: search_file
+  parameters:
+  - description: 文件名模式（如 *.py, *.yaml, main*）
+    name: pattern
+    required: true
+    type: string
+  - description: 搜索目录，默认项目根目录
+    name: directory
+    required: false
+    type: string
+  type: function
+- description: 在本地执行 shell 命令并获取输出。用于运行代码、安装依赖、查看结果等
+  handler: run_command
+  name: run_command
+  parameters:
+  - description: 要执行的 shell 命令
+    name: command
+    required: true
+    type: string
+  - description: 超时时间（秒），默认 15，最大 60
+    name: timeout
+    required: false
+    type: integer
+  type: function
+- description: 搜索互联网获取实时信息。用于查询最新API文档、实时行情、规则法规等。使用DuckDuckGo免费搜索
+  handler: web_search
+  name: web_search
+  parameters:
+  - description: 搜索关键词或问题
+    name: query
+    required: true
+    type: string
+  type: function
+- description: 根据 contract.json 验证前后端代码接口一致性。检查前端fetch URL是否匹配契约endpoint、字段名是否匹配
+  handler: validate_contract
+  name: validate_contract
+  parameters:
+  - description: 项目名称（如 "a-stock-monitor"）或 contract.json 路径
+    name: project
+    required: true
+    type: string
+  type: function
+- description: 自动测试项目：启动后端→curl所有contract端点→报告pass/fail。自动安装依赖
+  handler: test_project
+  name: test_project
+  parameters:
+  - description: 项目目录名
+    name: project
+    required: true
+    type: string
+  - description: 测试端口（默认9001）
+    name: port
+    required: false
+    type: integer
+  type: function
+- description: 读取项目中Agent间共享上下文（SHARED_CONTEXT.md），了解前后端接口约定
+  handler: read_context
+  name: read_context
+  parameters:
+  - description: 项目目录名
+    name: project
+    required: true
+    type: string
+  type: function
 ui:
-  avatar: "🎯"
-  welcome_message: "你好！我是 AI Agent Hub 中央调度器。我可以协调多个专业 Agent 完成复杂任务。请告诉我你需要什么？"
+  avatar: 🎯
   suggested_questions:
-    - "帮我做一个完整的电商网站项目：需求分析→UI设计→后端API→部署方案"
-    - "分析这份商业计划书：法律合规审查+财务预测评估+市场策略建议"
-    - "我需要学习Rust语言：制定学习路线→找资源→出练习题→代码审查"
+  - 帮我做一个完整的电商网站项目：需求分析→UI设计→后端API→部署方案
+  - 分析这份商业计划书：法律合规审查+财务预测评估+市场策略建议
+  - 我需要学习Rust语言：制定学习路线→找资源→出练习题→代码审查
+  welcome_message: 你好！我是 AI Agent Hub 中央调度器。我可以协调多个专业 Agent 完成复杂任务。请告诉我你需要什么？
