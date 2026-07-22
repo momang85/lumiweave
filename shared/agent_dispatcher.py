@@ -337,10 +337,10 @@ class AgentDispatcher:
             logger.info(f"Agent '{agent_id}' 未找到，尝试自动生成...")
             try:
                 from shared.agent_generator import AgentGenerator
-                gen = AgentGenerator(api_key=api_key, provider=provider, model=model or "Qwen/Qwen3.5-35B-A3B")
                 desc = f"{agent_id} 开发专家。接收开发任务创建代码文件。"
-                new_agent = gen.generate(description=desc)
-                if new_agent:
+                gen = AgentGenerator()  # 模板模式，无需LLM调用
+                new_agent = gen.generate(user_input=desc)
+                if new_agent and new_agent.yaml_content:
                     logger.info(f"自动生成Agent成功: {new_agent.agent_id}")
                     # 重新搜索
                     yaml_path = AgentFileStore._find_agent_file(agent_id)
