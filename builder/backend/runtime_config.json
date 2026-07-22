@@ -15,7 +15,7 @@
   "max_run_command_per_session": 5,
   "web_search_timeout": 8,
   "web_search_proxy": "http://127.0.0.1:7897",
-  "llm_proxy": "http://127.0.0.1:7897",
+  "llm_proxy": "",
   "search_result_limit": 5,
   "serpapi_timeout": 10,
   "file_read_default_lines": 500,
@@ -26,7 +26,6 @@
   "llm_rate_limit_rpm": 30,
   "llm_rate_limit_concurrent": 3,
   "llm_rate_limit_interval": 0.5,
-  "sub_agent_model": "Qwen/Qwen3.5-7B-Instruct",
   "enable_rag": true,
   "enable_web_search": true,
   "enable_tool_fallback": true

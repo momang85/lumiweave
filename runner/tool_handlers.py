@@ -542,6 +542,51 @@ def handle_delegate_task(**kwargs) -> str:
 
 
 # ──────────────────────────────────────────────
+# v2.5: 一键派发——自动创建Agent并执行
+# ──────────────────────────────────────────────
+
+def handle_dispatch_to_agents(**kwargs) -> str:
+    """自动创建缺失的Agent并并行派发任务。
+    
+    Orchestrator 不需要关心Agent是否存在——这个函数自动兜底。
+    """
+    task = kwargs.get("task", kwargs.get("message", ""))
+    project_dir = kwargs.get("project_dir", kwargs.get("project", "."))
+    api_key = kwargs.get("api_key", "")
+    provider = kwargs.get("provider", "")
+    model = kwargs.get("model", "")
+    base_url = kwargs.get("base_url", "")
+
+    # 1. 确定任务类型
+    if not task:
+        return json.dumps({"error": "缺少task参数"}, ensure_ascii=False)
+
+    # 2. 并行派发后端+前端
+    results = {}
+    dispatcher = get_dispatcher()
+
+    # 后端任务
+    backend_task = f"创建 {project_dir}/backend/main.py：FastAPI应用，SQLite数据库，CORS配置。\n完整要求：{task}"
+    be_result = dispatcher.delegate_task(
+        agent_id="com.aihub.backend-dev",
+        task=backend_task,
+        api_key=api_key, provider=provider, model=model, base_url=base_url
+    )
+    results["backend"] = be_result
+
+    # 前端任务
+    frontend_task = f"创建 {project_dir}/frontend/：index.html+app.js+style.css。\n完整要求：{task}"
+    fe_result = dispatcher.delegate_task(
+        agent_id="com.aihub.frontend-dev",
+        task=frontend_task,
+        api_key=api_key, provider=provider, model=model, base_url=base_url
+    )
+    results["frontend"] = fe_result
+
+    return json.dumps(results, ensure_ascii=False, indent=2)
+
+
+# ──────────────────────────────────────────────
 # v0.6.1: 子Agent直通通信
 # ──────────────────────────────────────────────
 
@@ -1243,6 +1288,7 @@ BUILTIN_HANDLERS: dict[str, Callable[..., str]] = {
     "search_memory":     handle_search_memory,
     "list_agents":       handle_list_agents,         # v0.5
     "delegate_task":     handle_delegate_task,       # v0.5
+    "dispatch_to_agents": handle_dispatch_to_agents, # v2.5
     "create_agent":      handle_create_agent,        # v0.5.1
     "read_file":         handle_read_file,           # v0.6
     "write_file":        handle_write_file,          # v0.6

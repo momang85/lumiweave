@@ -38,26 +38,17 @@ system_prompt: |
   - 每次 delegate 后立即验证：read_file 检查文件存在+行数>=min_lines
   - 缺失立即补 delegate(task明确说"上次委托你写X但文件未创建，请重新创建")
 
-  ## 工作流（3步）
+  ## 工作流（2步）
 
   ### 1. 写契约
-  write_file 创建 contract.json：
+  write_file 创建 contract.json（1次调用）：
   ```json
-  {"project":"","backend":{"files":[{"name":"main.py","min_lines":30}]},"frontend":{"files":[{"name":"index.html","min_lines":15},{"name":"app.js","min_lines":20}]},"implementation":{"storage":"SQLite","startup":"uvicorn main:app --port 8000"}}
+  {"project":"","backend":{"files":[{"name":"main.py","min_lines":30}]},"frontend":{"files":[{"name":"index.html","min_lines":15},{"name":"app.js","min_lines":20}]}}
   ```
 
-  ### 2. 并行派发
-  直接 delegate 给后端/前端Agent（不存在会自动创建）：
-  ```
-  delegate_task(agent_id="com.aihub.backend-dev",
-    task="创建backend/main.py，FastAPI完整API代码。",
-    context="{backend节点}")
-  delegate_task(agent_id="com.aihub.frontend-dev",
-    task="创建frontend/index.html+app.js，完整前端页面。",
-    context="{frontend节点}")
-  ```
-
-  ### 3. 验证
+  ### 2. 一键派发
+  dispatch_to_agents(task="完整任务描述", project_dir="projects/项目名")
+  ↳ 自动创建后端+前端Agent，并行执行，返回结果。
   read_file检查→缺失/过短→补delegate(最多3轮)
   read_context查看Agent间的接口声明→不一致则delegate修正
 
@@ -71,6 +62,20 @@ system_prompt: |
   写RUN.md→输出总结
 
 tools:
+  - name: dispatch_to_agents
+    description: 一键派发后端+前端开发任务。自动创建缺失Agent并行执行。项目task描述和project_dir路径。
+    type: function
+    handler: dispatch_to_agents
+    parameters:
+      - name: task
+        type: string
+        description: 完整任务描述
+        required: true
+      - name: project_dir
+        type: string
+        description: 项目目录，如 projects/myapp
+        required: true
+
   - name: list_agents
     description: 列出系统中所有可用的子 Agent，返回每个 Agent 的 id、名称、描述、能力标签
     type: function
