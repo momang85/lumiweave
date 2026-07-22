@@ -62,6 +62,7 @@ class AgentRunner:
     def __init__(self, agent_path: str):
         # 1. 加载 Agent
         self.config: AgentConfig = load_agent(agent_path)
+        self._api_ctx: dict = {}  # v2.5: API配置上下文
 
         # 2. 读取运行模式
         raw_mode = getattr(self.config.runtime, "mode", "simple") or "simple"
@@ -474,8 +475,13 @@ class AgentRunner:
 
         # 执行
         timeout = tool_config.timeout if tool_config else 30
+        # v2.5: 注入 API 配置到子Agent工具调用
+        args = dict(tool_call.arguments)
+        for k, v in self._api_ctx.items():
+            args.setdefault(f'_{k}', v)
+        args['timeout'] = timeout
         try:
-            result = handler_func(**tool_call.arguments, timeout=timeout)
+            result = handler_func(**args)
         except Exception as e:
             return json.dumps({
                 "error": f"工具执行失败: {type(e).__name__}: {e}",

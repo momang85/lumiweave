@@ -31,8 +31,8 @@ interface ChoiceSection {
 function parseChoices(text: string): ChoiceSection[] {
   const sections: ChoiceSection[] = []
   
-  // 先按 --- 分隔，取第一部分（问题本体）
-  const mainPart = text.split(/^---$/m)[0]
+  // 直接在全文中搜索 ### 段落
+  const mainPart = text
   
   // 方法1：按 ##/### 标题分段
   const headingRegex = /(?:^|\n)(#{2,3})\s+([^\n]+)\n([\s\S]*?)(?=\n#{2,3}\s|$)/g

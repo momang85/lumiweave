@@ -515,13 +515,17 @@ def handle_delegate_task(**kwargs) -> str:
     task = kwargs.get("task", "")
     context = kwargs.get("context", "")
 
-    # v2.5: 防止自循环
+    # v2.5: 防止自循环——自动转为 dispatch_to_agents
     if any(kw in str(agent_id).lower() for kw in ('orchestrat', 'c20420f90eb0')):
-        return json.dumps({
-            "error": "禁止派遣给自己！请立即调用 dispatch_to_agents(project_dir=\"projects/xxx\", task=\"完整任务描述\")",
-            "action": "dispatch_to_agents",
-            "example": f"dispatch_to_agents(project_dir=\"projects/项目名\", task=\"{task[:100]}\")"
-        }, ensure_ascii=False)
+        project_dir = task.strip().split('projects/')
+        pd = 'projects/' + project_dir[-1].split()[0].rstrip('/') if len(project_dir)>1 else 'projects/output'
+        return handle_dispatch_to_agents(
+            task=task, project_dir=pd,
+            _api_key=kwargs.get("_api_key", kwargs.get("api_key", "")),
+            _provider=kwargs.get("_provider", kwargs.get("provider", "")),
+            _model=kwargs.get("_model", kwargs.get("model", "")),
+            _base_url=kwargs.get("_base_url", kwargs.get("base_url", "")),
+        )
 
     # v0.5.2: 接收 orchestrator 注入的 API Key/provider，优先使用
     api_key = kwargs.get("_api_key", kwargs.get("api_key", ""))
@@ -560,10 +564,11 @@ def handle_dispatch_to_agents(**kwargs) -> str:
     """
     task = kwargs.get("task", kwargs.get("message", ""))
     project_dir = kwargs.get("project_dir", kwargs.get("project", "."))
-    api_key = kwargs.get("api_key", "")
-    provider = kwargs.get("provider", "")
-    model = kwargs.get("model", "")
-    base_url = kwargs.get("base_url", "")
+    # 接收 orchestrator 注入的配置
+    api_key = kwargs.get("_api_key", kwargs.get("api_key", ""))
+    provider = kwargs.get("_provider", kwargs.get("provider", ""))
+    model = kwargs.get("_model", kwargs.get("model", ""))
+    base_url = kwargs.get("_base_url", kwargs.get("base_url", ""))
 
     # 1. 无task时自动读取contract.json
     if not task:
