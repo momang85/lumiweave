@@ -590,9 +590,10 @@ async def _chat_generator_v4(
                     _d2 = _gd2()
                     while _d2._event_queue:
                         et, ed = _d2._event_queue.pop(0)
-                        qdata = json.dumps({'type': et, 'detail': ed}, ensure_ascii=False)
-                        yield f"data: {qdata}\n\n"
-                except: pass
+                        event_str = json.dumps({'type': et, 'detail': ed}, ensure_ascii=False)
+                        yield f"data: {event_str}\n\n"
+                except Exception:
+                    pass  # yield 可能已断开，忽略
 
                 # 发送开始执行提示
                 for tc in tools_to_execute:

@@ -57,16 +57,23 @@ function AgentCard({ act, index, total }: { act: AgentActivity; index: number; t
   const animClass = act.status === 'working' ? 'animate-spin' : ''
   const duration = act.endTime ? Math.round((act.endTime - act.startTime) / 1000) : null
 
+  const layerTag = act.layer === 1 ? '🧠' : act.layer === 2 ? '🎯' : act.layer === 3 ? '🐍' : ''
+  const layerLabel = act.layer === 3 ? 'L3 子Agent' : act.layer === 2 ? 'L2 调度中心' : ''
+  const indent = act.layer === 3 ? 'ml-4' : act.layer === 2 ? 'ml-2' : ''
+
   return (
-    <div className={`p-3 rounded-xl border ${cfg.bgColor} border-gray-100 transition-all duration-300`}>
+    <div className={`p-3 rounded-xl border ${cfg.bgColor} border-gray-100 transition-all duration-300 ${indent}`}>
       {/* Agent header */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
+          {layerTag && <span className="text-xs">{layerTag}</span>}
           <span className="text-lg">{guessAvatar(act.agentName)}</span>
           <div>
-            <span className="font-medium text-xs text-gray-800">
-              {act.agentName}
-            </span>
+            <div className="flex items-center gap-1">
+              {layerLabel && <span className="text-[9px] text-gray-400 bg-gray-100 px-1 rounded">{layerLabel}</span>}
+              <span className="font-medium text-xs text-gray-800">
+                {act.agentName}
+              </span>
             <span className="text-[10px] text-gray-400 ml-1">
               #{index + 1}/{total}
             </span>
