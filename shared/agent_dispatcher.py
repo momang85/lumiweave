@@ -206,6 +206,7 @@ class AgentDispatcher:
         self._sessions: dict[str, DispatchSession] = {}
         self._current_session_id: str = ""
         self._session_ttl: int = 3600  # 1 小时自动清理
+        self._event_queue: list = []   # v2.6: SSE事件队列（线程安全）
 
     def _cleanup_expired_sessions(self):
         """清理过期 session 防止内存泄漏"""
@@ -236,6 +237,10 @@ class AgentDispatcher:
                 "avatar": a.avatar,
             })
         return result
+
+    def _emit(self, event_type: str, data: dict):
+        """向SSE事件队列推送子Agent事件"""
+        self._event_queue.append((event_type, data))
 
     def delegate_task(
         self,
@@ -597,6 +602,13 @@ class AgentDispatcher:
                         },
                     })
 
+            # v2.6: 发送子Agent派发事件
+            self._emit('agent_dispatch', {
+                'agent_id': actual_agent_id,
+                'agent_name': agent_info.name,
+                'task': full_prompt[:200],
+                'layer': 3
+            })
             # 使用 orchestrator 的 LLM（同一 API Key）执行子任务
             # effective_provider / effective_model 已在预检阶段定义
 
@@ -782,6 +794,15 @@ class AgentDispatcher:
                         "agent_name": agent_info.name,
                         "error": "Agent未创建要求的文件（未使用write_file）"}
 
+            # v2.6: 发送子Agent结果事件
+            self._emit('agent_result', {
+                'agent_id': actual_agent_id,
+                'agent_name': agent_info.name,
+                'success': True,
+                'tool_calls': tool_call_count,
+                'output_snippet': final_output[:200],
+                'layer': 3
+            })
             delegate_result = DelegateResult(
                 agent_id=actual_agent_id,
                 agent_name=agent_info.name,
@@ -900,6 +921,15 @@ class AgentDispatcher:
                     f"例如 http://127.0.0.1:7897）"
                 )
 
+            # v2.6: 发送子Agent失败事件
+            self._emit('agent_result', {
+                'agent_id': actual_agent_id,
+                'agent_name': agent_info.name,
+                'success': False,
+                'tool_calls': tool_call_count,
+                'error': error_str[:200],
+                'layer': 3
+            })
             # v2.0: 失败自动换人 — 尝试候选列表中下一个 Agent
             if _fallback_candidates:
                 next_agent = _fallback_candidates.pop(0)[1]

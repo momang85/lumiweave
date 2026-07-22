@@ -533,7 +533,8 @@ def handle_delegate_task(**kwargs) -> str:
     model = kwargs.get("_model", kwargs.get("model", ""))
     base_url = kwargs.get("_base_url", kwargs.get("base_url", ""))
 
-    dispatcher = get_dispatcher()
+    from shared.agent_dispatcher import get_dispatcher as _get_disp
+    dispatcher = _get_disp()
     result = dispatcher.delegate_task(
         agent_id=agent_id,
         task=task,
@@ -589,7 +590,8 @@ def handle_dispatch_to_agents(**kwargs) -> str:
 
     # 2. 并行派发后端+前端
     results = {}
-    dispatcher = get_dispatcher()
+    from shared.agent_dispatcher import get_dispatcher as _get_disp
+    dispatcher = _get_disp()
 
     # 后端任务
     backend_task = f"创建 {project_dir}/backend/main.py：FastAPI应用，SQLite数据库，CORS配置。\n完整要求：{task}"

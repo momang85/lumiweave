@@ -573,6 +573,15 @@ async def _chat_generator_v4(
                                     _model=model,
                                     _base_url=base_url,
                                 )
+                        # v2.6: push sub-agent events to SSE
+                        try:
+                            from shared.agent_dispatcher import get_dispatcher as _gd2
+                            _d2 = _gd2()
+                            while _d2._event_queue:
+                                et, ed = _d2._event_queue.pop(0)
+                                qdata = json.dumps({'type': et, 'detail': ed}, ensure_ascii=False)
+                                yield f"data: {qdata}\n\n"
+                        except: pass
                         except asyncio.TimeoutError:
                             tool_result = json.dumps({
                                 "error": f"工具 {tool_name} 执行超时（>{_rc_get('sub_agent_timeout', 120)}s），已强制终止",
