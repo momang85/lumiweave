@@ -572,9 +572,7 @@ def handle_dispatch_to_agents(**kwargs) -> str:
                 desc = contract.get('project', '')
                 backend_info = contract.get('backend', {})
                 frontend_info = contract.get('frontend', {})
-                task = f'项目: {desc}
-后端: {json.dumps(backend_info, ensure_ascii=False)}
-前端: {json.dumps(frontend_info, ensure_ascii=False)}'
+                task = '项目: ' + str(desc) + '\n后端: ' + json.dumps(backend_info, ensure_ascii=False) + '\n前端: ' + json.dumps(frontend_info, ensure_ascii=False)
             except:
                 pass
     if not task:
