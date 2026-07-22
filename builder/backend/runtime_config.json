@@ -7,7 +7,7 @@
   "sub_agent_max_tokens": 8192,
   "sub_agent_temperature": 0.3,
   "sub_agent_system_prompt_limit": 8000,
-  "sub_agent_timeout": 600,
+  "sub_agent_timeout": 300,
   "delegate_cache_max": 50,
   "run_command_timeout": 10,
   "code_executor_timeout": 10,
@@ -28,5 +28,6 @@
   "llm_rate_limit_interval": 0.5,
   "enable_rag": true,
   "enable_web_search": true,
-  "enable_tool_fallback": true
+  "enable_tool_fallback": true,
+  "sub_agent_model": "Qwen/Qwen3.5-35B-A3B"
 }

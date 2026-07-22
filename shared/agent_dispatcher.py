@@ -472,16 +472,8 @@ class AgentDispatcher:
                 if key:
                     effective_provider = prov
                     available_key = key
-                    # v2.2: 子Agent快模型覆盖——运行时配置可指定 sub_agent_model
-                    _sub_fast_model = ""
-                    try:
-                        from runtime_config import get as _rc_get
-                        _sub_fast_model = _rc_get("sub_agent_model", "")
-                    except ImportError:
-                        pass
-                    if _sub_fast_model:
-                        effective_model = _sub_fast_model
-                    elif preferred_provider == prov and model:
+                    # v2.7: 子Agent默认使用与调度中心相同的模型
+                    if preferred_provider == prov and model:
                         effective_model = model
                     elif prov == sub_model_provider:
                         effective_model = sub_model_name
