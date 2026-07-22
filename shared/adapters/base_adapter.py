@@ -103,7 +103,14 @@ class BaseAdapter(ABC):
                 self._total_tokens += response.total_tokens
             return response
         except Exception as e:
-            logger.error(f"[{self.provider_type.value}] chat error: {e}")
+            err = str(e).lower()
+            hint = ""
+            if any(k in err for k in ('connection', 'timeout', 'timed out', 'refused', 'reset', 'name or service')):
+                hint = ("\n💡 连接失败，可能原因：\n"
+                       "1. 需要代理：在 Settings → 运行参数 设置 llm_proxy（如 http://127.0.0.1:7897）\n"
+                       "2. 网络不通：检查防火墙/VPN\n"
+                       "3. 使用本地模型：安装 Ollama 后运行 'ollama pull qwen2.5:3b'")
+            logger.error(f"[{self.provider_type.value}] chat error: {e}{hint}")
             raise
         finally:
             try:

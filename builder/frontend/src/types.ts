@@ -49,6 +49,7 @@ export interface AgentActivity {
   neededProvider: string
   startTime: number
   endTime?: number
+  layer?: number  // v2.6: 1=Planner 2=Orchestrator 3=SubAgent
 }
 
 export interface TemplateData {

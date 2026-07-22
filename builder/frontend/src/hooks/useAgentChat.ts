@@ -122,15 +122,16 @@ export function useAgentChat(
 
           if (event.type === 'agent_dispatch') {
             setIsOrchestrating(true)
+            // v2.6: 支持 detail 包裹的新格式
+            const dd = (event as any).detail || event
             setActivities((prev) => {
-              const agentId = (event as any).agent_id || ''
-              const task = (event as any).task || ''
-              // 避免重复
+              const agentId = dd.agent_id || ''
+              const task = dd.task || ''
               if (prev.some(a => a.agentId === agentId && a.status === 'working')) return prev
               return [...prev, {
                 id: `act-${Date.now()}`,
                 agentId,
-                agentName: (event as any).agent_name || agentId,
+                agentName: dd.agent_name || agentId,
                 task: task.slice(0, 80),
                 status: 'working' as const,
                 toolCalls: 0,
@@ -138,24 +139,26 @@ export function useAgentChat(
                 needsKey: false,
                 neededProvider: '',
                 startTime: Date.now(),
+                layer: dd.layer || 0,
               }]
             })
             return
           }
 
           if (event.type === 'agent_result') {
+            const rd = (event as any).detail || event
             setActivities((prev) => prev.map(a => {
-              const e = event as any
-              if (a.agentId === e.agent_id && a.status === 'working') {
+              if (a.agentId === rd.agent_id && a.status === 'working') {
                 return {
                   ...a,
-                  agentName: e.agent_name || a.agentName,
-                  status: e.success ? 'done' as const : 'failed' as const,
-                  toolCalls: e.tool_calls || 0,
-                  outputSnippet: (e.output_snippet || '').slice(0, 120),
-                  needsKey: e.needs_key || false,
-                  neededProvider: e.needed_provider || '',
+                  agentName: rd.agent_name || a.agentName,
+                  status: rd.success ? 'done' as const : 'failed' as const,
+                  toolCalls: rd.tool_calls || 0,
+                  outputSnippet: (rd.output_snippet || '').slice(0, 120),
+                  needsKey: rd.needs_key || false,
+                  neededProvider: rd.needed_provider || '',
                   endTime: Date.now(),
+                  layer: rd.layer || a.layer || 0,
                 }
               }
               return a
