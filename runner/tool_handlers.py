@@ -515,6 +515,10 @@ def handle_delegate_task(**kwargs) -> str:
     task = kwargs.get("task", "")
     context = kwargs.get("context", "")
 
+    # v2.5: 防止自循环
+    if any(kw in str(agent_id).lower() for kw in ('orchestrat', 'c20420f90eb0')):
+        return json.dumps({"error": "禁止派遣给自己！请用 dispatch_to_agents 一键派发"}, ensure_ascii=False)
+
     # v0.5.2: 接收 orchestrator 注入的 API Key/provider，优先使用
     api_key = kwargs.get("_api_key", kwargs.get("api_key", ""))
     provider = kwargs.get("_provider", kwargs.get("provider", ""))
