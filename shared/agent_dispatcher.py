@@ -107,7 +107,15 @@ class AgentRegistry:
             if cls._loaded:
                 return cls._cache
 
-        cls._cache = {}
+        return cls.reload()
+
+    @classmethod
+    def reload(cls) -> dict[str, AgentInfo]:
+        """强制重新加载Agent目录"""
+        cls._ensure_lock()
+        with cls._lock:
+            cls._loaded = False  # 清除缓存
+            cls._cache = {}
         if not _AGENTS_DIR.exists():
             logger.warning(f"Agent 目录不存在: {_AGENTS_DIR}")
             return cls._cache
@@ -337,17 +345,28 @@ class AgentDispatcher:
             logger.info(f"Agent '{agent_id}' 未找到，尝试自动生成...")
             try:
                 from shared.agent_generator import AgentGenerator
+                import os, yaml
                 desc = f"{agent_id} 开发专家。接收开发任务创建代码文件。"
                 gen = AgentGenerator()  # 模板模式，无需LLM调用
                 new_agent = gen.generate(user_input=desc)
-                if new_agent and new_agent.yaml_content:
-                    logger.info(f"自动生成Agent成功: {new_agent.agent_id}")
-                    # 重新搜索
-                    yaml_path = AgentFileStore._find_agent_file(agent_id)
-                    if not yaml_path:
-                        yaml_path = AgentFileStore._find_agent_file(new_agent.agent_id)
+                if new_agent and new_agent.success and new_agent.yaml_content:
+                    # 解析生成的YAML获取agent_id
+                    parsed = yaml.safe_load(new_agent.yaml_content)
+                    new_id = parsed['meta']['id'] if isinstance(parsed, dict) and 'meta' in parsed else None
+                    logger.info(f"自动生成Agent: {new_id} (YAML={len(new_agent.yaml_content)}B)")
+                    # 保存YAML到agents/目录
+                    yaml_path = os.path.join(os.path.dirname(__file__), '..', '..', 'agents', f'{new_id}.yaml')
+                    os.makedirs(os.path.dirname(yaml_path), exist_ok=True)
+                    with open(yaml_path, 'w', encoding='utf-8') as f:
+                        f.write(new_agent.yaml_content)
+                    # 注册到AgentRegistry
+                    AgentRegistry.reload()
+                    # 替换agent_id为实际生成的ID
+                    agent_id = new_id
+                    logger.info(f"Agent注册成功，使用新ID: {agent_id}")
             except Exception as e:
-                logger.warning(f"自动生成Agent失败，继续执行: {e}")
+                logger.warning(f"自动生成Agent失败: {e}")
+                import traceback; traceback.print_exc()
             
             if not yaml_path:
                 return {

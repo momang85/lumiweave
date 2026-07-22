@@ -15,7 +15,7 @@
   "max_run_command_per_session": 5,
   "web_search_timeout": 8,
   "web_search_proxy": "http://127.0.0.1:7897",
-  "llm_proxy": "http://127.0.0.1:7897",
+  "llm_proxy": "",
   "search_result_limit": 5,
   "serpapi_timeout": 10,
   "file_read_default_lines": 500,
