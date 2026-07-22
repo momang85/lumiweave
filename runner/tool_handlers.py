@@ -557,9 +557,24 @@ def handle_dispatch_to_agents(**kwargs) -> str:
     model = kwargs.get("model", "")
     base_url = kwargs.get("base_url", "")
 
-    # 1. 确定任务类型
+    # 1. 无task时自动读取contract.json
     if not task:
-        return json.dumps({"error": "缺少task参数"}, ensure_ascii=False)
+        import os
+        contract_path = os.path.join(project_dir, 'contract.json')
+        if os.path.exists(contract_path):
+            try:
+                with open(contract_path, encoding='utf-8') as f:
+                    contract = json.load(f)
+                desc = contract.get('project', '')
+                backend_info = contract.get('backend', {})
+                frontend_info = contract.get('frontend', {})
+                task = f'项目: {desc}
+后端: {json.dumps(backend_info, ensure_ascii=False)}
+前端: {json.dumps(frontend_info, ensure_ascii=False)}'
+            except:
+                pass
+    if not task:
+        return json.dumps({'error': '缺少task参数且contract.json未找到'}, ensure_ascii=False)
 
     # 2. 并行派发后端+前端
     results = {}
